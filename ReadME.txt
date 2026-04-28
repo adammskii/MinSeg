@@ -1,0 +1,1 @@
+Put I2Cdev and MPU6050 inside C:\Users\Adam\Documents\Arduino\libraries

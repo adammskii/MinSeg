@@ -3,14 +3,19 @@
 const int ENC_A_PIN = 2;
 const int ENC_B_PIN = 3;
 
-volatile long encoderCount = 0;
-
-long lastEncoderCount = 0;
-float wheelRateCountsPerSec = 0.0;
-
 const float ENCODER_COUNTS_PER_REV = 720.0;
 
+// Speed estimation
+const unsigned long SPEED_SAMPLE_US = 50000; // 50 ms
+const float RPM_FILTER_ALPHA = 0.80;         // higher = smoother
 
+volatile long encoderCount = 0;
+
+long lastSpeedCount = 0;
+unsigned long lastSpeedTime = 0;
+
+float wheelRPM_raw = 0.0;
+float wheelRPM_filtered = 0.0;
 
 void initEncoder() {
   pinMode(ENC_A_PIN, INPUT_PULLUP);
@@ -20,7 +25,11 @@ void initEncoder() {
   attachInterrupt(digitalPinToInterrupt(ENC_B_PIN), encoderISR_B, CHANGE);
 
   encoderCount = 0;
-  lastEncoderCount = 0;
+  lastSpeedCount = 0;
+  lastSpeedTime = micros();
+
+  wheelRPM_raw = 0.0;
+  wheelRPM_filtered = 0.0;
 
   Serial.println("Encoder initialized");
 }
@@ -54,27 +63,45 @@ long getEncoderCount() {
   return count;
 }
 
-float getWheelRPM() {
-  return getWheelRateCountsPerSec() * 60.0 / ENCODER_COUNTS_PER_REV;
-}
-
 void resetEncoder() {
   noInterrupts();
   encoderCount = 0;
   interrupts();
 
-  lastEncoderCount = 0;
-  wheelRateCountsPerSec = 0.0;
+  lastSpeedCount = 0;
+  lastSpeedTime = micros();
+
+  wheelRPM_raw = 0.0;
+  wheelRPM_filtered = 0.0;
 }
 
-void updateEncoder(float dt) {
+void updateEncoderSpeed() {
+  unsigned long now = micros();
+
+  if ((unsigned long)(now - lastSpeedTime) < SPEED_SAMPLE_US) {
+    return;
+  }
+
+  float dt = (now - lastSpeedTime) / 1000000.0;
+
   long count = getEncoderCount();
-  long delta = count - lastEncoderCount;
+  long delta = count - lastSpeedCount;
 
-  wheelRateCountsPerSec = delta / dt;
-  lastEncoderCount = count;
+  float countsPerSecond = delta / dt;
+  wheelRPM_raw = countsPerSecond * 60.0 / ENCODER_COUNTS_PER_REV;
+
+  wheelRPM_filtered =
+    RPM_FILTER_ALPHA * wheelRPM_filtered
+    + (1.0 - RPM_FILTER_ALPHA) * wheelRPM_raw;
+
+  lastSpeedCount = count;
+  lastSpeedTime = now;
 }
 
-float getWheelRateCountsPerSec() {
-  return wheelRateCountsPerSec;
+float getWheelRPM() {
+  return wheelRPM_filtered;
+}
+
+float getWheelRPMRaw() {
+  return wheelRPM_raw;
 }

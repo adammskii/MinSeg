@@ -1,5 +1,3 @@
-// Motor.ino
-
 const int MOTOR_PWM_PIN = 5;
 const int MOTOR_DIR_PIN = 4;
 
@@ -8,6 +6,7 @@ int currentMotorPWM = 0;
 void initMotor() {
   pinMode(MOTOR_PWM_PIN, OUTPUT);
   pinMode(MOTOR_DIR_PIN, OUTPUT);
+ // TCCR3B = (TCCR3B & 0b11111000) | 0x01;
   stopMotor();
   Serial.println("Motor initialized");
 }

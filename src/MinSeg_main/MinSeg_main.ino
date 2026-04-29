@@ -25,7 +25,7 @@ void loop() {
     lastControl += Ts_us;
 
     updateIMU();
-    updateEncoder(0.005);
+    updateEncoderSpeed();
   }
 
   /*
@@ -55,10 +55,13 @@ void loop() {
     Serial.print("\tenc:");
     Serial.print(getEncoderCount());
 
-    Serial.print("\twheelRate_counts_s:");
-    Serial.print(getWheelRateCountsPerSec());
+    Serial.print("\trpmRaw:");
+    Serial.print(getWheelRPMRaw());
 
-    Serial.print("\twheelRPM:");
+    Serial.print("\trpm:");
     Serial.println(getWheelRPM());
+      
+    Serial.print("\tpwm:");
+    Serial.print(getMotorPWM());
   }
 }

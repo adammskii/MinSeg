@@ -60,5 +60,8 @@ void loop() {
 
     Serial.print("\trpm:");
     Serial.println(getWheelRPM());
+      
+    Serial.print("\tpwm:");
+    Serial.print(getMotorPWM());
   }
 }

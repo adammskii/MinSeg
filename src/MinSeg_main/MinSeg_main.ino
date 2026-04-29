@@ -43,25 +43,25 @@ void loop() {
 
  
 
-  if (millis() - lastPrint >= 100) { // slower print = easier serial input
-    lastPrint = millis();
+  if (millis() - lastPrint >= 100) {
+  lastPrint = millis();
 
-    Serial.print("angle:");
-    Serial.print(getTiltAngle());
+  Serial.print("angle:");
+  Serial.print(getTiltAngle());
 
-    Serial.print("\trate:");
-    Serial.print(getTiltRate());
+  Serial.print("\trate:");
+  Serial.print(getTiltRate());
 
-    Serial.print("\tenc:");
-    Serial.print(getEncoderCount());
+  Serial.print("\tenc:");
+  Serial.print(getEncoderCount());
 
-    Serial.print("\trpmRaw:");
-    Serial.print(getWheelRPMRaw());
+  Serial.print("\trpmRaw:");
+  Serial.print(getWheelRPMRaw());
 
-    Serial.print("\trpm:");
-    Serial.println(getWheelRPM());
-      
-    Serial.print("\tpwm:");
-    Serial.print(getMotorPWM());
-  }
+  Serial.print("\trpm:");
+  Serial.print(getWheelRPM());
+
+  Serial.print("\tpwm:");
+  Serial.println(getMotorPWM());
+}
 }

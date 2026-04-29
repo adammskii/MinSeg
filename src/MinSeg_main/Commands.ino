@@ -1,5 +1,5 @@
-int forwardPWM = 70;
-int backwardPWM = 80; // tune this separately
+int forwardPWM = 120;
+int backwardPWM = 140; // tune this separately
 
 void handleSerialCommands() {
   while (Serial.available() > 0) {

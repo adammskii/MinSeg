@@ -8,6 +8,10 @@ volatile long encoderCount = 0;
 long lastEncoderCount = 0;
 float wheelRateCountsPerSec = 0.0;
 
+const float ENCODER_COUNTS_PER_REV = 720.0;
+
+
+
 void initEncoder() {
   pinMode(ENC_A_PIN, INPUT_PULLUP);
   pinMode(ENC_B_PIN, INPUT_PULLUP);
@@ -48,6 +52,10 @@ long getEncoderCount() {
   long count = encoderCount;
   interrupts();
   return count;
+}
+
+float getWheelRPM() {
+  return getWheelRateCountsPerSec() * 60.0 / ENCODER_COUNTS_PER_REV;
 }
 
 void resetEncoder() {

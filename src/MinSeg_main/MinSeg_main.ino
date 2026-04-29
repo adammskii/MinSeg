@@ -17,6 +17,8 @@ void setup() {
 }
 
 void loop() {
+  handleSerialCommands();
+
   unsigned long now = micros();
 
   if (now - lastControl >= Ts_us) {
@@ -39,9 +41,9 @@ void loop() {
   */
   // Temporary motor test
 
-  handleSerialCommands();
+ 
 
-  if (millis() - lastPrint >= 50) {
+  if (millis() - lastPrint >= 100) { // slower print = easier serial input
     lastPrint = millis();
 
     Serial.print("angle:");
@@ -53,7 +55,10 @@ void loop() {
     Serial.print("\tenc:");
     Serial.print(getEncoderCount());
 
-    Serial.print("\twheelRate:");
-    Serial.println(getWheelRateCountsPerSec());
+    Serial.print("\twheelRate_counts_s:");
+    Serial.print(getWheelRateCountsPerSec());
+
+    Serial.print("\twheelRPM:");
+    Serial.println(getWheelRPM());
   }
 }

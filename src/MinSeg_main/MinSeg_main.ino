@@ -10,6 +10,9 @@ void setup() {
   initIMU();
   calibrateIMU();
 
+  initMotor();
+  initEncoder();
+
   lastControl = micros();
 }
 
@@ -20,8 +23,10 @@ void loop() {
     lastControl += Ts_us;
 
     updateIMU();
+    updateEncoder(0.005);
   }
 
+  /*
   if (millis() - lastPrint >= 50) {
     lastPrint = millis();
 
@@ -30,5 +35,25 @@ void loop() {
 
     Serial.print("\trate:");
     Serial.println(getTiltRate());
+  }
+  */
+  // Temporary motor test
+
+  handleSerialCommands();
+
+  if (millis() - lastPrint >= 50) {
+    lastPrint = millis();
+
+    Serial.print("angle:");
+    Serial.print(getTiltAngle());
+
+    Serial.print("\trate:");
+    Serial.print(getTiltRate());
+
+    Serial.print("\tenc:");
+    Serial.print(getEncoderCount());
+
+    Serial.print("\twheelRate:");
+    Serial.println(getWheelRateCountsPerSec());
   }
 }

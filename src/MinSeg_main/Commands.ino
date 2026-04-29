@@ -1,10 +1,10 @@
-int testPWM = 70; // start LOW, not 160
+int forwardPWM = 70;
+int backwardPWM = 80; // tune this separately
 
 void handleSerialCommands() {
   while (Serial.available() > 0) {
     char c = Serial.read();
 
-    // Ignore line endings from Serial Monitor
     if (c == '\n' || c == '\r' || c == ' ') {
       continue;
     }
@@ -18,40 +18,39 @@ void handleSerialCommands() {
 
       case 'f':
       case 'F':
-        setMotorPWM(testPWM);
+        setMotorPWM(forwardPWM);
         Serial.print("forward PWM = ");
-        Serial.println(testPWM);
+        Serial.println(forwardPWM);
         break;
 
       case 'b':
       case 'B':
-        setMotorPWM(-testPWM);
+        setMotorPWM(-backwardPWM);
         Serial.print("backward PWM = ");
-        Serial.println(testPWM);
+        Serial.println(backwardPWM);
         break;
 
       case '+':
-        testPWM = constrain(testPWM + 10, 0, 180);
-        Serial.print("testPWM = ");
-        Serial.println(testPWM);
+        forwardPWM = constrain(forwardPWM + 5, 0, 180);
+        backwardPWM = constrain(backwardPWM + 5, 0, 180);
+        Serial.print("forwardPWM = ");
+        Serial.print(forwardPWM);
+        Serial.print(" backwardPWM = ");
+        Serial.println(backwardPWM);
         break;
 
       case '-':
-        testPWM = constrain(testPWM - 10, 0, 180);
-        Serial.print("testPWM = ");
-        Serial.println(testPWM);
+        forwardPWM = constrain(forwardPWM - 5, 0, 180);
+        backwardPWM = constrain(backwardPWM - 5, 0, 180);
+        Serial.print("forwardPWM = ");
+        Serial.print(forwardPWM);
+        Serial.print(" backwardPWM = ");
+        Serial.println(backwardPWM);
         break;
 
       case '0':
         resetEncoder();
         Serial.println("encoder reset");
-        break;
-
-      default:
-        stopMotor();
-        Serial.print("unknown command ");
-        Serial.print(c);
-        Serial.println(" -> STOP");
         break;
     }
   }

@@ -23,6 +23,11 @@ void handleSerialCommands() {
         Serial.println(forwardPWM);
         break;
 
+      case 'g':
+      case 'G':
+      enableBalancing();
+      break;
+      
       case 'b':
       case 'B':
         setMotorPWM(-backwardPWM);

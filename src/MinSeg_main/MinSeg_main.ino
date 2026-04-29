@@ -26,6 +26,8 @@ void loop() {
 
     updateIMU();
     updateEncoderSpeed();
+    
+    updateBalanceController();
   }
 
   /*

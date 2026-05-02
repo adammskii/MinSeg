@@ -4,18 +4,7 @@ Arduino code for the MinSeg self-balancing robot project in FRTN01.
 
 The goal is to build a working control system for the MinSeg robot using an Arduino Mega 2560 / SainSmart Mega 2560, MPU6050 IMU, motor, and encoder.
 
----
 
-## Repository
-
-```bash
-git clone https://github.com/adammskii/MinSeg.git
-cd MinSeg
-```
-
-If the repository is private, you must be added as a collaborator before you can clone or push.
-
----
 
 ## Project structure
 
@@ -134,7 +123,7 @@ During calibration, hold the MinSeg still at the angle that should count as upri
 
 # Git instructions
 
-## First time: clone the project
+## First time: clone the project, DO THIS IN THE FOLDER WHERE YOU WANT IT TO LAND
 
 ```bash
 git clone https://github.com/adammskii/MinSeg.git

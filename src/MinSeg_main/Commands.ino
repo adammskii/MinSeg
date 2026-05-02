@@ -13,7 +13,7 @@ void handleSerialCommands() {
       case 's':
       case 'S':
         stopMotor();
-        disableBalancing();
+       // disableBalancing();
         Serial.println("STOP");
         break;
 
@@ -32,7 +32,7 @@ void handleSerialCommands() {
       
       case 'b':
       case 'B':
-        disableBalancing();
+      disableBalancing();
         setMotorPWM(-backwardPWM);
         Serial.print("backward PWM = ");
         Serial.println(backwardPWM);

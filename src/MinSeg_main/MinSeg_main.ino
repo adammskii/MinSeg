@@ -44,10 +44,10 @@ void loop() {
   // Temporary motor test
 
  
-
+/*
   if (millis() - lastPrint >= 100) {
   lastPrint = millis();
-
+  
   Serial.print("angle:");
   Serial.print(getTiltAngle());
 
@@ -59,11 +59,15 @@ void loop() {
 
   Serial.print("\trpmRaw:");
   Serial.print(getWheelRPMRaw());
-
+ 
   Serial.print("\trpm:");
   Serial.print(getWheelRPM());
 
   Serial.print("\tpwm:");
   Serial.println(getMotorPWM());
+  
+  
 }
+*/
+
 }

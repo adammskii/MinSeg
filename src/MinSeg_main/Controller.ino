@@ -1,3 +1,12 @@
+// Controller.ino
+
+bool balancingEnabled = false;
+
+const int MAX_BALANCE_PWM = 200;
+
+const float START_ANGLE_LIMIT = 8.0;   // degrees
+const float FALL_ANGLE_LIMIT  = 25.0;  // degrees
+
 // LQR gain from MATLAB.
 // State order must match A:
 // x = [thetaDot, theta, wheelDot, wheelAngle]
@@ -15,7 +24,6 @@ long balanceStartCount = 0;
 
 float modelInputToPWM(float u) {
   // If your MATLAB input is motor voltage, use battery voltage here.
-  // For 9 V battery:
   const float U_MAX = 9.0;
 
   float pwm = 255.0 * u / U_MAX;
@@ -38,6 +46,16 @@ void enableBalancing() {
 
   balancingEnabled = true;
   Serial.println("BALANCING ENABLED");
+}
+
+void disableBalancing() {
+  balancingEnabled = false;
+  stopMotor();
+  Serial.println("BALANCING DISABLED");
+}
+
+bool isBalancingEnabled() {
+  return balancingEnabled;
 }
 
 void updateBalanceController() {
@@ -65,10 +83,12 @@ void updateBalanceController() {
 
   // State order must match MATLAB A matrix:
   // x = [thetaDot, theta, wheelDot, wheelAngle]
-  float u = -(K_lqr[0] * thetaDot
+  float u = +(K_lqr[0] * thetaDot
             + K_lqr[1] * theta
             + K_lqr[2] * wheelDot
             + K_lqr[3] * wheelAngle);
+
+  u *= 1.0; //Gain 
 
   int pwm = modelInputToPWM(u);
 

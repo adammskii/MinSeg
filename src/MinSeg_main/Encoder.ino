@@ -6,7 +6,7 @@ const int ENC_B_PIN = 3;
 const float ENCODER_COUNTS_PER_REV = 720.0;
 
 // Speed estimation
-const unsigned long SPEED_SAMPLE_US = 50000; // 50 ms
+const unsigned long SPEED_SAMPLE_US = 5000; // 5 ms
 const float RPM_FILTER_ALPHA = 0.80;         // higher = smoother
 
 volatile long encoderCount = 0;

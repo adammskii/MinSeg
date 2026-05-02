@@ -17,7 +17,9 @@ void setup() {
 }
 
 void loop() {
+  //Serial.println(1);
   handleSerialCommands();
+  //Serial.println(2);
 
   unsigned long now = micros();
 
@@ -28,6 +30,7 @@ void loop() {
     updateEncoderSpeed();
     
     updateBalanceController();
+    //Serial.println(3);
   }
 
   /*

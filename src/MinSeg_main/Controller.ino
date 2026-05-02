@@ -1,6 +1,6 @@
 // Controller.ino
 
-bool balancingEnabled = false;
+bool balancingEnabled = true;
 
 const int MAX_BALANCE_PWM = 200;
 

@@ -16,6 +16,17 @@ float accAngleOffset = 0.0;
 float tiltAngle = 0.0;
 float tiltRate = 0.0;
 
+
+// Kalman
+float phi_ILC[4] = {0.6156, -0.0012, 0.0001, 0.9955};
+float phi_L[4] = {0.3844, 0.0012, 0.0099, 0.0045};
+float ONE_LC[4] = {0.6156, -0.0012, -0.0061, 0.9956};
+float L[4] = {0.3844, 0.0012, 0.0061, 0.0045};
+
+float x_k1_k[2] = {0,0};
+float x_k_k[2] = {0,0};
+
+
 float getRawAccAngleX() {
   return atan2((float)ay, (float)az) * 180.0 / PI;
 }
@@ -30,10 +41,10 @@ void initIMU() {
   mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
   mpu.setFullScaleGyroRange(MPU6050_GYRO_FS_250);
 
-  if (!mpu.testConnection()) {
-    Serial.println("MPU6050 connection failed");
-    while (1);
-  }
+  //if (!mpu.testConnection()) {
+  //  Serial.println("MPU6050 connection failed");
+  //  while (1);
+  //}
 
   Serial.println("MPU6050 connected");
 }
@@ -80,12 +91,26 @@ void updateIMU() {
 
   tiltAngle = imuAlpha * (tiltAngle + tiltRate * dt)
             + (1.0 - imuAlpha) * accAngle;
+  kalmanIMU();
 }
 
 float getTiltAngle() {
-  return tiltAngle;
+  //return tiltAngle;
+  return x_k_k[1];
 }
 
 float getTiltRate() {
-  return tiltRate;
+  //return tiltRate;
+  return x_k_k[0];
+}
+
+
+
+void kalmanIMU(){
+  x_k_k[0] = ONE_LC[0]*x_k1_k[0] + ONE_LC[1]*x_k1_k[1] + phi_L[0]*tiltRate + phi_L[1]*tiltAngle;
+  x_k_k[1] = ONE_LC[2]*x_k1_k[0] + ONE_LC[3]*x_k1_k[1] + phi_L[2]*tiltRate + phi_L[3]*tiltAngle;
+
+  x_k1_k[0] = phi_ILC[0]*x_k1_k[0] + phi_ILC[1]*x_k1_k[1] + phi_L[0]*tiltRate + phi_L[1]*tiltAngle;
+  x_k1_k[1] = phi_ILC[2]*x_k1_k[0] + phi_ILC[3]*x_k1_k[1] + phi_L[2]*tiltRate + phi_L[3]*tiltAngle;
+
 }

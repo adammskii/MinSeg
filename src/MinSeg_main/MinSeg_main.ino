@@ -1,4 +1,5 @@
 const unsigned long Ts_us = 5000; // 5 ms = 200 Hz
+const unsigned long Tp_ms = 50; // Långsam print intervall = 50ms (20 Hz)
 
 unsigned long lastControl = 0;
 unsigned long lastPrint = 0;
@@ -34,6 +35,23 @@ void loop() {
     //Serial.println(3);
   }
 
+  // ---------------------------------------------------------
+  // 2. Print loop som är långsam
+  // ---------------------------------------------------------
+  unsigned long now_ms = millis();
+    if (now_ms - lastPrint >= Tp_ms) {
+    lastPrint = now_ms;
+    Serial.print(isBalancingEnabled() ? "BALANCING," : "STOPPED,");
+    Serial.print(getTiltAngle());
+    Serial.print(",");
+    Serial.print(getTiltRate());
+    Serial.print(",");
+    Serial.println(getMotorPWM());
+  }
+
+/*
+//Bönans kod
+  balanceStartCount
 
   if (Serial.available() > 0) {
   long value = Serial.parseInt();
@@ -47,6 +65,7 @@ void loop() {
     setBalanceStartCount(value);
   }
 }
+'/
 
   /*
   if (millis() - lastPrint >= 50) {

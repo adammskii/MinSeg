@@ -1,3 +1,24 @@
+void handleSerialCommands() {
+  if (Serial.available() > 0) {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim(); // Remove any hidden \r or spaces
+
+    if (cmd == "START") {
+      enableBalancing(); // Restarts the process and resets encoders
+    } 
+    else if (cmd == "STOP") {
+      disableBalancing(); // Stops motors immediately
+    }
+    else if (cmd.startsWith("REF:")) {
+      // Logic for slider if you choose to use it
+      String valuePart = cmd.substring(4);
+      float refValue = valuePart.toFloat();
+      // reference_r = valuePart.toFloat(); 
+    }
+  }
+}
+
+/*
 int forwardPWM = 120;
 int backwardPWM = 140; // tune this separately
 
@@ -63,3 +84,4 @@ void handleSerialCommands() {
     }
   }
 }
+*/

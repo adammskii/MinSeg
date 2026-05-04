@@ -63,6 +63,15 @@ long getEncoderCount() {
   return count;
 }
 
+void setEncoderCount(long delta) {
+  noInterrupts();
+  encoderCount += delta;
+  lastSpeedCount +=delta;
+  interrupts();
+}
+
+
+
 void resetEncoder() {
   noInterrupts();
   encoderCount = 0;

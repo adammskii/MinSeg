@@ -5,6 +5,7 @@ unsigned long lastPrint = 0;
 
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(1);
   delay(1000);
 
   initIMU();
@@ -32,6 +33,20 @@ void loop() {
     updateBalanceController();
     //Serial.println(3);
   }
+
+
+  if (Serial.available() > 0) {
+  long value = Serial.parseInt();
+  Serial.println(value);
+
+  while (Serial.available() > 0) {
+    Serial.read(); // flush leftover newline / carriage return
+  }
+
+  if (value != 0) {
+    setBalanceStartCount(value);
+  }
+}
 
   /*
   if (millis() - lastPrint >= 50) {

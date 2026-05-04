@@ -31,6 +31,12 @@ float modelInputToPWM(float u) {
   return constrain((int)pwm, -MAX_BALANCE_PWM, MAX_BALANCE_PWM);
 }
 
+void setBalanceStartCount(long delta){
+  noInterrupts();
+  balanceStartCount += delta;
+  interrupts();
+}
+
 void enableBalancing() {
   float angleDeg = getTiltAngle();
 

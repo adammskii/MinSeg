@@ -84,10 +84,10 @@ class Ui_MinSegGUI(object):
 
         self.graph_1 = PlotWidget(self.centralwidget)
         self.graph_1.setObjectName(u"graph_1")
-        self.widget = QWidget(self.graph_1)
-        self.widget.setObjectName(u"widget")
-        self.widget.setGeometry(QRect(0, 120, 769, 113))
-        self.gridLayout = QGridLayout(self.widget)
+        self.layoutWidget = QWidget(self.graph_1)
+        self.layoutWidget.setObjectName(u"layoutWidget")
+        self.layoutWidget.setGeometry(QRect(0, 120, 769, 113))
+        self.gridLayout = QGridLayout(self.layoutWidget)
         self.gridLayout.setObjectName(u"gridLayout")
 
         self.verticalLayout.addWidget(self.graph_1)
@@ -96,10 +96,25 @@ class Ui_MinSegGUI(object):
 
         self.verticalLayout.addItem(self.horizontalSpacer)
 
-        self.label_4 = QLabel(self.centralwidget)
-        self.label_4.setObjectName(u"label_4")
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.btn_ref_back = QPushButton(self.centralwidget)
+        self.btn_ref_back.setObjectName(u"btn_ref_back")
 
-        self.verticalLayout.addWidget(self.label_4)
+        self.horizontalLayout_3.addWidget(self.btn_ref_back)
+
+        self.btn_ref_reset = QPushButton(self.centralwidget)
+        self.btn_ref_reset.setObjectName(u"btn_ref_reset")
+
+        self.horizontalLayout_3.addWidget(self.btn_ref_reset)
+
+        self.btn_ref_forward = QPushButton(self.centralwidget)
+        self.btn_ref_forward.setObjectName(u"btn_ref_forward")
+
+        self.horizontalLayout_3.addWidget(self.btn_ref_forward)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
 
         self.Slider_k = QSlider(self.centralwidget)
         self.Slider_k.setObjectName(u"Slider_k")
@@ -132,6 +147,8 @@ class Ui_MinSegGUI(object):
         self.label_angle.setText(QCoreApplication.translate("MinSegGUI", u"Angle: ", None))
         self.label_pwm.setText(QCoreApplication.translate("MinSegGUI", u"PWM:", None))
         self.label_rate.setText(QCoreApplication.translate("MinSegGUI", u"Rate:", None))
-        self.label_4.setText(QCoreApplication.translate("MinSegGUI", u"Reference", None))
+        self.btn_ref_back.setText(QCoreApplication.translate("MinSegGUI", u"Backward", None))
+        self.btn_ref_reset.setText(QCoreApplication.translate("MinSegGUI", u"Reset", None))
+        self.btn_ref_forward.setText(QCoreApplication.translate("MinSegGUI", u"Forward", None))
     # retranslateUi
 

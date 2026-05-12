@@ -75,7 +75,6 @@ class MinSegGUI(QMainWindow):
         self.h_slow = 0.05  # 50 ms
         self.k = 0
 
-        self.last_ref_value = self.ui.Slider_k.value()
 
         self.time_data = []
         self.angle_data = []
@@ -113,7 +112,10 @@ class MinSegGUI(QMainWindow):
         # ---------------------------------------------------------
         self.ui.btn_start.clicked.connect(self.send_start)
         self.ui.btn_stop.clicked.connect(self.send_stop)
-        self.ui.Slider_k.valueChanged.connect(self.send_reference)
+
+        self.ui.btn_ref_back.clicked.connect(lambda: self.send_reference_delta(-1000))
+        self.ui.btn_ref_forward.clicked.connect(lambda: self.send_reference_delta(1000))
+        self.ui.btn_ref_reset.clicked.connect(self.send_reference_reset)
 
         # ---------------------------------------------------------
         # 4. UPDATE LOOP
@@ -140,12 +142,11 @@ class MinSegGUI(QMainWindow):
     def send_stop(self):
         self.send_line("STOP")
 
-    def send_reference(self, value):
-        delta = value - self.last_ref_value
-        self.last_ref_value = value
+    def send_reference_delta(self, delta):
+        self.send_line(f"SET ref {delta}")
 
-        if delta != 0:
-            self.send_line(f"SET ref {delta}")
+    def send_reference_reset(self):
+        self.send_line("SET ref 0")
 
     def update_system(self):
         if self.bt is None:

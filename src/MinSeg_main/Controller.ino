@@ -7,6 +7,7 @@ const int MAX_BALANCE_PWM = 200;
 const float START_ANGLE_LIMIT = 8.0;   // degrees
 const float FALL_ANGLE_LIMIT  = 25.0;  // degrees
 
+
 // LQR gain from MATLAB.
 // State order must match A:
 // x = [thetaDot, theta, wheelDot, wheelAngle]
@@ -36,6 +37,7 @@ float modelInputToPWM(float u) {
 
   return constrain((int)pwm, -MAX_BALANCE_PWM, MAX_BALANCE_PWM);
 }
+
 
 void setBalanceStartCount(long delta){
   noInterrupts();

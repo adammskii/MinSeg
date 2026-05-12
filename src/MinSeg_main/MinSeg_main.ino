@@ -22,7 +22,6 @@ unsigned long lastTelemetry = 0;
 
 void setup() {
   // Communication.ino handles Serial.begin(COMM_BAUD)
-  // COMM_BAUD is currently 9600 in Communication.ino
   initCommunication();
   Serial.setTimeout(1);
 
@@ -89,11 +88,19 @@ void applyCommunicationCommands() {
   if (cmdSetRequested) {
     cmdSetRequested = false;
 
-    // For now, just acknowledge the received parameter.
-    // Later this can be connected to reference values or controller gains.
-    Serial.print("SET RECEIVED ");
-    Serial.print(cmdSetName);
-    Serial.print(" = ");
-    Serial.println(cmdSetValue);
+    // GUI sends: SET ref <delta>
+    if (strcmp(cmdSetName, "ref") == 0) {
+      long delta = (long)cmdSetValue;
+
+      if (delta != 0) {
+        setBalanceStartCount(delta);
+      }
+
+      Serial.print("OK REF ");
+      Serial.println(delta);
+    } else {
+      Serial.print("ERR unknown SET name: ");
+      Serial.println(cmdSetName);
+    }
   }
 }

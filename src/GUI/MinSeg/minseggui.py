@@ -8,8 +8,7 @@ from PySide6.QtCore import QTimer
 from ui_form import Ui_MinSegGUI
 
 
-# Use 9600 if you are using Communication.ino / Bluetooth HC-05/HC-06 default.
-# Use 115200 if you are using the old USB print code in MinSeg_main.ino.
+# Try 115200 first. If Bluetooth gives garbage/no data, change back to 9600.
 DEFAULT_BAUD = 9600
 
 
@@ -76,6 +75,8 @@ class MinSegGUI(QMainWindow):
         self.h_slow = 0.05  # 50 ms
         self.k = 0
 
+        self.last_ref_value = self.ui.Slider_k.value()
+
         self.time_data = []
         self.angle_data = []
 
@@ -84,6 +85,8 @@ class MinSegGUI(QMainWindow):
         # ---------------------------------------------------------
         # 2. SERIAL / BLUETOOTH
         # ---------------------------------------------------------
+        self.rx_text = ""  # Persistent receive buffer for incomplete Bluetooth lines
+
         self.bt = None
         selected_port = port or find_serial_port()
 
@@ -95,7 +98,7 @@ class MinSegGUI(QMainWindow):
                 self.bt = serial.Serial(
                     port=selected_port,
                     baudrate=baud,
-                    timeout=0.01,
+                    timeout=0,          # Non-blocking read
                     write_timeout=0.1,
                 )
                 print(f"Connected to {selected_port} at {baud} baud")
@@ -138,22 +141,43 @@ class MinSegGUI(QMainWindow):
         self.send_line("STOP")
 
     def send_reference(self, value):
-        # Communication.ino expects commands like:
-        # SET ref 10
-        self.send_line(f"SET ref {value}")
+        delta = value - self.last_ref_value
+        self.last_ref_value = value
+
+        if delta != 0:
+            self.send_line(f"SET ref {delta}")
 
     def update_system(self):
         if self.bt is None:
             return
 
         try:
-            while self.bt.in_waiting > 0:
-                raw_text = self.bt.readline().decode("utf-8", errors="ignore").strip()
+            waiting = self.bt.in_waiting
 
-                if not raw_text:
-                    return
+            if waiting <= 0:
+                return
 
-                self.handle_serial_line(raw_text)
+            # Read all available serial bytes at once
+            chunk = self.bt.read(waiting).decode("utf-8", errors="ignore")
+
+            if not chunk:
+                return
+
+            # Store partial lines until complete newline arrives
+            self.rx_text += chunk
+
+            # Process only complete lines
+            while "\n" in self.rx_text:
+                raw_text, self.rx_text = self.rx_text.split("\n", 1)
+                raw_text = raw_text.strip()
+
+                if raw_text:
+                    self.handle_serial_line(raw_text)
+
+            # Safety: clear buffer if it grows too much
+            if len(self.rx_text) > 500:
+                print(f"Clearing oversized serial buffer: {self.rx_text!r}")
+                self.rx_text = ""
 
         except (serial.SerialException, OSError) as e:
             print(f"Serial read error: {e}")
@@ -186,7 +210,7 @@ class MinSegGUI(QMainWindow):
                 time_ms = self.k * self.h_slow * 1000.0
 
             else:
-                # These are normal non-data messages from Arduino:
+                # Normal non-data messages:
                 # READY, OK START, OK STOP, BALANCING ENABLED, etc.
                 print(f"Ignored line: {raw_text}")
 
@@ -195,6 +219,10 @@ class MinSegGUI(QMainWindow):
                 elif raw_text.startswith("OK"):
                     self.ui.label_status.setText(f"Status: {raw_text}")
                 elif raw_text.startswith("ERR"):
+                    self.ui.label_status.setText(f"Status: {raw_text}")
+                elif raw_text.startswith("BALANCING"):
+                    self.ui.label_status.setText(f"Status: {raw_text}")
+                elif raw_text.startswith("FALL"):
                     self.ui.label_status.setText(f"Status: {raw_text}")
 
                 return

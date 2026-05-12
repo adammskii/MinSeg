@@ -6,8 +6,8 @@ const int ENC_B_PIN = 3;
 const float ENCODER_COUNTS_PER_REV = 720.0;
 
 // Speed estimation
-const unsigned long SPEED_SAMPLE_US = 5000; // 5 ms
-const float RPM_FILTER_ALPHA = 0.80;         // higher = smoother
+const unsigned long SPEED_SAMPLE_US = 5000;  // 5 ms
+const float RPM_FILTER_ALPHA = 0.80;         // Higher = smoother
 
 volatile long encoderCount = 0;
 
@@ -17,6 +17,20 @@ unsigned long lastSpeedTime = 0;
 float wheelRPM_raw = 0.0;
 float wheelRPM_filtered = 0.0;
 
+// ---------------------------------------------------------
+// Kalman wheels
+// ---------------------------------------------------------
+float phi_ILC_wheel[4] = {1.0, -3.1090, 0.0050, 0.8157};
+float phi_L_wheel[2] = {3.1090, 0.1843};
+float ONE_LC_wheel[4] = {1.0, -3.1090, 0.0, 0.8313};
+float L_wheel[2] = {3.1090, 0.1687};
+
+float x_k1_k_wheel[2] = {0.0, 0.0};
+float x_k_k_wheel[2] = {0.0, 0.0};
+
+// ---------------------------------------------------------
+// Encoder setup
+// ---------------------------------------------------------
 void initEncoder() {
   pinMode(ENC_A_PIN, INPUT_PULLUP);
   pinMode(ENC_B_PIN, INPUT_PULLUP);
@@ -31,9 +45,17 @@ void initEncoder() {
   wheelRPM_raw = 0.0;
   wheelRPM_filtered = 0.0;
 
+  x_k1_k_wheel[0] = 0.0;
+  x_k1_k_wheel[1] = 0.0;
+  x_k_k_wheel[0] = 0.0;
+  x_k_k_wheel[1] = 0.0;
+
   Serial.println("Encoder initialized");
 }
 
+// ---------------------------------------------------------
+// Encoder interrupts
+// ---------------------------------------------------------
 void encoderISR_A() {
   bool A = digitalRead(ENC_A_PIN);
   bool B = digitalRead(ENC_B_PIN);
@@ -56,21 +78,23 @@ void encoderISR_B() {
   }
 }
 
+// ---------------------------------------------------------
+// Encoder count functions
+// ---------------------------------------------------------
 long getEncoderCount() {
   noInterrupts();
   long count = encoderCount;
   interrupts();
+
   return count;
 }
 
 void setEncoderCount(long delta) {
   noInterrupts();
   encoderCount += delta;
-  lastSpeedCount +=delta;
+  lastSpeedCount += delta;
   interrupts();
 }
-
-
 
 void resetEncoder() {
   noInterrupts();
@@ -82,8 +106,16 @@ void resetEncoder() {
 
   wheelRPM_raw = 0.0;
   wheelRPM_filtered = 0.0;
+
+  x_k1_k_wheel[0] = 0.0;
+  x_k1_k_wheel[1] = 0.0;
+  x_k_k_wheel[0] = 0.0;
+  x_k_k_wheel[1] = 0.0;
 }
 
+// ---------------------------------------------------------
+// Speed estimation
+// ---------------------------------------------------------
 void updateEncoderSpeed() {
   unsigned long now = micros();
 
@@ -105,12 +137,43 @@ void updateEncoderSpeed() {
 
   lastSpeedCount = count;
   lastSpeedTime = now;
+
+  kalmanWheels();
 }
 
 float getWheelRPM() {
-  return wheelRPM_filtered;
+  // return wheelRPM_filtered;
+  return x_k_k_wheel[1];
 }
 
 float getWheelRPMRaw() {
   return wheelRPM_raw;
+}
+
+// ---------------------------------------------------------
+// Wheel Kalman filter
+// ---------------------------------------------------------
+void kalmanWheels() {
+  float old_x0 = x_k1_k_wheel[0];
+  float old_x1 = x_k1_k_wheel[1];
+
+  x_k_k_wheel[0] =
+    ONE_LC_wheel[0] * old_x0
+    + ONE_LC_wheel[1] * old_x1
+    + L_wheel[0] * wheelRPM_raw;
+
+  x_k_k_wheel[1] =
+    ONE_LC_wheel[2] * old_x0
+    + ONE_LC_wheel[3] * old_x1
+    + L_wheel[1] * wheelRPM_raw;
+
+  x_k1_k_wheel[0] =
+    phi_ILC_wheel[0] * old_x0
+    + phi_ILC_wheel[1] * old_x1
+    + phi_L_wheel[0] * wheelRPM_raw;
+
+  x_k1_k_wheel[1] =
+    phi_ILC_wheel[2] * old_x0
+    + phi_ILC_wheel[3] * old_x1
+    + phi_L_wheel[1] * wheelRPM_raw;
 }

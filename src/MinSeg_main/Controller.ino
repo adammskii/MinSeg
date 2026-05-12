@@ -15,6 +15,12 @@ const float K_lqr[4] = {
   -62.7680,
   -0.8960,
   -0.1926
+/*
+  -10.4231,
+  -58.6941,
+  -0.8467,
+  -0.080
+  */
 };
 
 const float TWO_PI_F = 6.28318530718;
@@ -94,7 +100,7 @@ void updateBalanceController() {
             + K_lqr[2] * wheelDot
             + K_lqr[3] * wheelAngle);
 
-  u *= 1.0; //Gain 
+  u *= 0.4; //Gain 
 
   int pwm = modelInputToPWM(u);
 

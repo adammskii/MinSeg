@@ -1,11 +1,67 @@
 import sys
+import argparse
 import serial
+from serial.tools import list_ports
+
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import QTimer
 from ui_form import Ui_MinSegGUI
 
+DEFAULT_BAUD = 115200  # Change to 9600 if communication.ino uses 9600
+
+
+def find_serial_port():
+    ports = sorted(list_ports.comports(), key=lambda p: p.device)
+
+    if not ports:
+        print("No serial ports found.")
+        return None
+
+    print("Available serial ports:")
+    for p in ports:
+        print(f"  {p.device}: {p.description} [{p.hwid}]")
+
+    # Prefer Bluetooth first, since your working port is the ZS-040/HC-05/HC-06 link
+    bluetooth_keywords = [
+        "bluetooth",
+        "standard serial over bluetooth",
+        "bthmodem",
+        "hc-05",
+        "hc-06",
+        "zs-040",
+    ]
+
+    for p in ports:
+        text = f"{p.device} {p.description} {p.hwid}".lower()
+        if any(keyword in text for keyword in bluetooth_keywords):
+            return p.device
+
+    # Then try Arduino/USB-ish ports
+    usb_keywords = [
+        "arduino",
+        "mega",
+        "usb serial",
+        "ch340",
+        "usb-sERIAL",
+    ]
+
+    for p in ports:
+        text = f"{p.device} {p.description} {p.hwid}".lower()
+        if any(keyword.lower() in text for keyword in usb_keywords):
+            return p.device
+
+    # Last fallback: first available port
+    return ports[0].device
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", default=None, help="Serial port, e.g. COM7")
+    parser.add_argument("--baud", type=int, default=DEFAULT_BAUD, help="Baud rate")
+    return parser.parse_known_args()
+
 class MinSegGUI(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, port=None, baud=DEFAULT_BAUD, parent=None):
         super().__init__(parent)
         self.ui = Ui_MinSegGUI()
         self.ui.setupUi(self)
@@ -25,10 +81,20 @@ class MinSegGUI(QMainWindow):
         # ---------------------------------------------------------
         # 2. HARDWARE (COMMUNICATION BUS)
         # ---------------------------------------------------------
-        try:
-            self.bt = serial.Serial('/dev/cu.usbmodem31201', 115200, timeout=0.01)
-        except serial.SerialException:
-            print("Warning: Arduino not connected on /dev/cu.usbmodem31201")
+        self.bt = None
+        selected_port = port or find_serial_port()
+
+        if selected_port is None:
+            print("Warning: No Arduino/Bluetooth serial port found.")
+            self.ui.label_status.setText("Status: No serial port")
+        else:
+            try:
+                self.bt = serial.Serial(selected_port, baud, timeout=0.01)
+                print(f"Connected to {selected_port} at {baud} baud")
+                self.ui.label_status.setText(f"Status: Connected to {selected_port}")
+            except serial.SerialException as e:
+                print(f"Warning: Could not open {selected_port}: {e}")
+                self.ui.label_status.setText("Status: Serial connection failed")
 
         # ---------------------------------------------------------
         # 3. SIGNAL-SLOT CONNECTIONS

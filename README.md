@@ -15,6 +15,11 @@ MinSeg/
 ├── Motor.ino         # Motor control functions
 ├── Encoder.ino       # Encoder reading/counting
 ├── Controller.ino    # Control law
+├── src/
+│   └── GUI/
+│       └── MinSeg/
+│           ├── minseggui.py   # Python GUI for serial/Bluetooth control
+│           └── ui_form.py     # Generated GUI layout file
 └── README.md         # Project instructions
 ```
 
@@ -104,6 +109,208 @@ Open Serial Monitor or Serial Plotter with baud rate:
 ```text
 115200
 ```
+
+---
+
+# Starting the MinSeg GUI
+
+The GUI is located in:
+
+```text
+src/GUI/MinSeg/
+```
+
+Before starting the GUI, make sure the Arduino or Bluetooth device is connected and that you are using the correct serial port.
+
+The current GUI setup normally uses baud rate:
+
+```text
+9600
+```
+
+This is used for the current Communication/Bluetooth setup.
+
+---
+
+## 1. Create and activate a Python virtual environment
+
+From the root of the repository:
+
+```bash
+cd MinSeg
+python -m venv .venv
+```
+
+Activate the virtual environment.
+
+### Windows PowerShell
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+### Windows Command Prompt
+
+```bat
+.\.venv\Scripts\activate.bat
+```
+
+### macOS / Linux
+
+```bash
+source .venv/bin/activate
+```
+
+You should now see `(.venv)` in the terminal, which means the virtual environment is active.
+
+---
+
+## 2. Install the required Python packages
+
+Make sure the virtual environment is active, then run:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install PySide6 pyserial pyqtgraph
+```
+
+The GUI needs:
+
+```text
+PySide6    # Qt GUI framework
+pyserial   # Serial communication with Arduino/Bluetooth
+pyqtgraph  # Live plotting in the GUI
+```
+
+---
+
+## 3. Find your serial/COM port
+
+If you do not know which port the Arduino or Bluetooth module is using, run:
+
+```bash
+python -m serial.tools.list_ports -v
+```
+
+On Windows, the port will usually look like:
+
+```text
+COM4
+COM5
+COM6
+```
+
+On macOS/Linux, it may look like:
+
+```text
+/dev/ttyUSB0
+/dev/ttyACM0
+/dev/cu.HC-05
+```
+
+Use the port that matches your Arduino, USB-serial adapter, or Bluetooth module.
+
+---
+
+## 4. Start the GUI
+
+Go to the GUI folder:
+
+```bash
+cd src/GUI/MinSeg
+```
+
+Then start the GUI with your serial port and baud rate.
+
+Example for Windows using `COM4`:
+
+```bash
+python minseggui.py --port COM4 --baud 9600
+```
+
+Example for macOS/Linux:
+
+```bash
+python minseggui.py --port /dev/ttyUSB0 --baud 9600
+```
+
+---
+
+## 5. Starting without manually choosing a port
+
+The GUI can also try to find a serial port automatically:
+
+```bash
+python minseggui.py
+```
+
+However, if the wrong port is selected or no connection is made, check the available ports manually:
+
+```bash
+python -m serial.tools.list_ports -v
+```
+
+Then start the GUI again with the correct port:
+
+```bash
+python minseggui.py --port COM4 --baud 9600
+```
+
+---
+
+## Common GUI issues
+
+### `ModuleNotFoundError`
+
+If you get an error such as:
+
+```text
+ModuleNotFoundError: No module named 'PySide6'
+```
+
+or:
+
+```text
+ModuleNotFoundError: No module named 'serial'
+```
+
+make sure the virtual environment is active and reinstall the packages:
+
+```bash
+python -m pip install PySide6 pyserial pyqtgraph
+```
+
+---
+
+### Serial connection failed
+
+If the GUI opens but says that the serial connection failed:
+
+1. Check that the Arduino/Bluetooth device is powered on.
+2. Check the correct COM port using:
+
+```bash
+python -m serial.tools.list_ports -v
+```
+
+3. Make sure no other program is using the same port, such as Arduino Serial Monitor.
+4. Start the GUI again with the correct port:
+
+```bash
+python minseggui.py --port COM4 --baud 9600
+```
+
+---
+
+### Running from the wrong folder
+
+Run the GUI from this folder:
+
+```text
+src/GUI/MinSeg
+```
+
+This is important because `minseggui.py` imports the generated GUI file `ui_form.py` from the same folder.
 
 ---
 

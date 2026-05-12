@@ -1,13 +1,30 @@
-const unsigned long Ts_us = 5000; // 5 ms = 200 Hz
-const unsigned long Tp_ms = 50; // Långsam print intervall = 50ms (20 Hz)
+// MinSeg_main.ino
+
+// ---------------------------------------------------------
+// Communication variables defined in Communication.ino
+// ---------------------------------------------------------
+extern bool cmdStartRequested;
+extern bool cmdStopRequested;
+extern bool cmdCalRequested;
+
+extern bool cmdSetRequested;
+extern char cmdSetName[20];
+extern float cmdSetValue;
+
+// ---------------------------------------------------------
+// Timing
+// ---------------------------------------------------------
+const unsigned long Ts_us = 5000;  // 5 ms = 200 Hz control loop
+const unsigned long Tp_ms = 50;    // 50 ms = 20 Hz telemetry/GUI update
 
 unsigned long lastControl = 0;
-unsigned long lastPrint = 0;
+unsigned long lastTelemetry = 0;
 
 void setup() {
-  Serial.begin(115200);
+  // Communication.ino handles Serial.begin(COMM_BAUD)
+  // COMM_BAUD is currently 9600 in Communication.ino
+  initCommunication();
   Serial.setTimeout(1);
-  delay(1000);
 
   initIMU();
   calibrateIMU();
@@ -16,13 +33,15 @@ void setup() {
   initEncoder();
 
   lastControl = micros();
+  lastTelemetry = millis();
 }
 
 void loop() {
-  //Serial.println(1);
-  handleSerialCommands();
-  //Serial.println(2);
+  // Read commands from GUI / Bluetooth / USB serial
+  handleCommunication();
+  applyCommunicationCommands();
 
+  // Fast control loop
   unsigned long now = micros();
 
   if (now - lastControl >= Ts_us) {
@@ -30,81 +49,51 @@ void loop() {
 
     updateIMU();
     updateEncoderSpeed();
-    
+
     updateBalanceController();
-    //Serial.println(3);
   }
 
-  // ---------------------------------------------------------
-  // 2. Print loop som är långsam
-  // ---------------------------------------------------------
+  // Slow telemetry loop for GUI
   unsigned long now_ms = millis();
-    if (now_ms - lastPrint >= Tp_ms) {
-    lastPrint = now_ms;
-    Serial.print(isBalancingEnabled() ? "BALANCING," : "STOPPED,");
-    Serial.print(getTiltAngle());
-    Serial.print(",");
-    Serial.print(getTiltRate());
-    Serial.print(",");
-    Serial.println(getMotorPWM());
-  }
 
-/*
-//Bönans kod
-  balanceStartCount
+  if (now_ms - lastTelemetry >= Tp_ms) {
+    lastTelemetry = now_ms;
 
-  if (Serial.available() > 0) {
-  long value = Serial.parseInt();
-  Serial.println(value);
-
-  while (Serial.available() > 0) {
-    Serial.read(); // flush leftover newline / carriage return
-  }
-
-  if (value != 0) {
-    setBalanceStartCount(value);
+    sendTelemetry(
+      getTiltAngle(),
+      getTiltRate(),
+      getEncoderCount(),
+      getMotorPWM(),
+      isBalancingEnabled()
+    );
   }
 }
-'/
 
-  /*
-  if (millis() - lastPrint >= 50) {
-    lastPrint = millis();
-
-    Serial.print("angle:");
-    Serial.print(getTiltAngle());
-
-    Serial.print("\trate:");
-    Serial.println(getTiltRate());
+void applyCommunicationCommands() {
+  if (cmdStartRequested) {
+    cmdStartRequested = false;
+    enableBalancing();
   }
-  */
-  // Temporary motor test
 
- 
-/*
-  if (millis() - lastPrint >= 100) {
-  lastPrint = millis();
-  
-  Serial.print("angle:");
-  Serial.print(getTiltAngle());
+  if (cmdStopRequested) {
+    cmdStopRequested = false;
+    disableBalancing();
+  }
 
-  Serial.print("\trate:");
-  Serial.print(getTiltRate());
+  if (cmdCalRequested) {
+    cmdCalRequested = false;
+    disableBalancing();
+    calibrateIMU();
+  }
 
-  Serial.print("\tenc:");
-  Serial.print(getEncoderCount());
+  if (cmdSetRequested) {
+    cmdSetRequested = false;
 
-  Serial.print("\trpmRaw:");
-  Serial.print(getWheelRPMRaw());
- 
-  Serial.print("\trpm:");
-  Serial.print(getWheelRPM());
-
-  Serial.print("\tpwm:");
-  Serial.println(getMotorPWM());
-  
-  
-}
-*/
-
+    // For now, just acknowledge the received parameter.
+    // Later this can be connected to reference values or controller gains.
+    Serial.print("SET RECEIVED ");
+    Serial.print(cmdSetName);
+    Serial.print(" = ");
+    Serial.println(cmdSetValue);
+  }
 }
